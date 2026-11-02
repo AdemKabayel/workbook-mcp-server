@@ -10,11 +10,12 @@ public class WorkbookMcpServer {
         StdioServerTransportProvider transportProvider =
             new StdioServerTransportProvider(McpJsonDefaults.getMapper());
 
-        McpServer.sync(transportProvider)
+        var server = McpServer.sync(transportProvider)
             .serverInfo("workbook-tools", "0.0.1")
             .capabilities(ServerCapabilities.builder().tools(true).build())
-            .tools(WorkbookTools.greetingTool())
             .build();
+
+        server.addTool(WorkbookTools.greetingTool());
     }
 
 }
