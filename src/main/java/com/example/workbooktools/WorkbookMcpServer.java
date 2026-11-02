@@ -3,6 +3,7 @@ package com.example.workbooktools;
 import io.modelcontextprotocol.json.McpJsonDefaults;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.transport.StdioServerTransportProvider;
+import io.modelcontextprotocol.spec.McpSchema.ServerCapabilities;
 
 public class WorkbookMcpServer {
     public static void main(String[] args) {
@@ -11,6 +12,8 @@ public class WorkbookMcpServer {
 
         McpServer.sync(transportProvider)
             .serverInfo("workbook-tools", "0.0.1")
+            .capabilities(ServerCapabilities.builder().tools(true).build())
+            .tools(WorkbookTools.greetingTool())
             .build();
     }
 
