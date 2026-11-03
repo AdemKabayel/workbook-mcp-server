@@ -6,6 +6,8 @@ import io.modelcontextprotocol.json.McpJsonDefaults;
 import io.modelcontextprotocol.server.McpServerFeatures.SyncToolSpecification;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.modelcontextprotocol.spec.McpSchema.Tool;
+import io.modelcontextprotocol.spec.McpError;
+import io.modelcontextprotocol.spec.McpSchema;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +19,10 @@ import java.util.stream.Stream;
 public class WorkbookTools {
     private static final Path OUTPUT_DIR = Path.of(System.getProperty("workbook.output.dir", "generated-workbooks"));
     private static final WorkbookGenerator GENERATOR = new WorkbookGenerator();
+
+    private record WorkbookResult(String filePath, int rowCount) {
+
+    }
 
     static SyncToolSpecification greetingTool() {
         String schema = """
@@ -75,10 +81,22 @@ public class WorkbookTools {
                 }
                 """;
 
+        String outputSchema = """
+                {
+                  "type": "object",
+                  "properties": {
+                    "filePath": { "type": "string" },
+                    "rowCount": { "type": "integer" }
+                  },
+                  "required": ["filePath", "rowCount"]
+                }
+                """;
+
         return SyncToolSpecification.builder()
                 .tool(Tool.builder("generate_workbook", McpJsonDefaults.getMapper(), schema)
                         .description(
                                 "Generates a sample .xlsx workbook from column specifications and writes it to the output directory")
+                        .outputSchema(McpJsonDefaults.getMapper(), outputSchema)
                         .build())
                 .callHandler((exchange, request) -> {
                     Map<String, Object> args = request.arguments();
@@ -104,14 +122,14 @@ public class WorkbookTools {
                         Files.createDirectories(OUTPUT_DIR);
                         GENERATOR.writeToFile(bytes, destination);
                     } catch (IOException e) {
-                        return CallToolResult.builder()
-                                .addTextContent("Failed to generate workbook: " + e.getMessage())
-                                .isError(true)
+                        throw McpError.builder(McpSchema.ErrorCodes.INTERNAL_ERROR)
+                                .message("Unexpected failure writing workbook: " + e.getMessage())
                                 .build();
                     }
 
                     return CallToolResult.builder()
                             .addTextContent("Wrote " + destination)
+                            .structuredContent(new WorkbookResult(destination.toString(), rowCount))
                             .build();
                 })
                 .build();
@@ -137,9 +155,8 @@ public class WorkbookTools {
                                         names.isEmpty() ? "No workbooks generated yet." : String.join("\n", names))
                                 .build();
                     } catch (IOException e) {
-                        return CallToolResult.builder()
-                                .addTextContent("Failed to list workbooks: " + e.getMessage())
-                                .isError(true)
+                        throw McpError.builder(McpSchema.ErrorCodes.INTERNAL_ERROR)
+                                .message("Unexpected failure writing workbook: " + e.getMessage())
                                 .build();
                     }
                 })
@@ -164,9 +181,8 @@ public class WorkbookTools {
                                 .addTextContent("Deleted " + toDelete.size() + " workbook(s).")
                                 .build();
                     } catch (IOException e) {
-                        return CallToolResult.builder()
-                                .addTextContent("Failed to clear workbooks: " + e.getMessage())
-                                .isError(true)
+                        throw McpError.builder(McpSchema.ErrorCodes.INTERNAL_ERROR)
+                                .message("Unexpected failure writing workbook: " + e.getMessage())
                                 .build();
                     }
                 })
