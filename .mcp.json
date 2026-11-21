@@ -5,6 +5,20 @@
       "command": "mvn",
       "args": ["-q", "compile", "exec:java"],
       "env": {}
+    },
+    "applitools-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["--yes", "@applitools/mcp@latest"],
+      "env": {
+        "APPLITOOLS_API_KEY": "${APPLITOOLS_API_KEY}"
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["--yes", "@playwright/mcp@latest"],
+      "env": {}
     }
   }
 }
