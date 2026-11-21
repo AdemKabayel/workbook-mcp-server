@@ -11,13 +11,20 @@ public class WorkbookMcpServer {
 
         var server = McpServer.sync(transportProvider)
                 .serverInfo("workbook-tools", "0.0.1")
-                .capabilities(ServerCapabilities.builder().tools(true).build())
+                .capabilities(ServerCapabilities.builder().tools(true).resources(false, false).build())
                 .build();
 
         server.addTool(WorkbookTools.greetingTool());
         server.addTool(WorkbookTools.generateWorkbookTool());
         server.addTool(WorkbookTools.listWorkbooksTool());
         server.addTool(WorkbookTools.clearWorkbooksTool());
+
+        server.addResource(WorkbookResources.dummyResource());
+        server.addResource(WorkbookResources.columnSpecSchemaResource());
+        server.addResourceTemplate(WorkbookResources.workbookFileInfoResource());
+        server.addResource(WorkbookResources.columnTypesGuideResource());
     }
 
 }
+
+// TODO: for work I can make a mcp for asn shipment..
